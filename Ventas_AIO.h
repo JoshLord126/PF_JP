@@ -46,6 +46,7 @@ public:
 		obj_conexion.conexion_open_sql();
 		//Fase 1 = Ingreso de Ventas; Fase 2 = Ingreso del detalle de ventas. 
 		string str_idVenta = to_string(int_idVenta);
+		int q_estado;
 		if (int_fase == 1) {
 			string str_nofactura = to_string(int_nofactura);
 			string str_idcliente = to_string(int_idcliente);
@@ -55,13 +56,7 @@ public:
 			
 			string insert_dat = "insert into ventas(nofactura, serie, fechafactura, idCliente, idEmpleado, fechaingreso) values(" + str_nofactura + ", '" + str_serie + "', '" + str_fechafactura + "', " + str_idcliente + ", " + str_idempleado + ", '" + str_fechaingreso + "')";
 			const char* execute_insert = insert_dat.c_str();
-			int q_estado = mysql_query(obj_conexion.getConector(), execute_insert);
-			if (!q_estado) {
-				cout << "\n\nIngreso OK\n\n";
-			}
-			else {
-				cout << "\n\nIngreso F\n\n";
-			}
+			q_estado = mysql_query(obj_conexion.getConector(), execute_insert);
 		}
 		else if (int_fase == 2) {
 			string str_precio_unitario = to_string(flt_precio_unitario);
@@ -70,18 +65,19 @@ public:
 
 			string insert_dat = "insert into ventas_detalle(idVenta, idProducto, cantidad, precio_unitario) values(" + str_idVenta + ", " + str_idProducto + ", '" + str_cantidad + "', " + str_precio_unitario + ")";
 			const char* execute_insert = insert_dat.c_str();
-			int q_estado = mysql_query(obj_conexion.getConector(), execute_insert);
-			if (!q_estado) {
-				cout << "\n\nIngreso OK\n\n";
-			}
-			else {
-				cout << "\n\nIngreso F\n\n";
-			}
+			q_estado = mysql_query(obj_conexion.getConector(), execute_insert);
 		}
 		else {
-			cout << "\n\nError de fase: Fase inexistente.\n\n";
+			cout << "\n\nError: Fase inexistente.\n\n";
 		}
 		
+		if (!q_estado) {
+			cout << "\n\nValores registrados\n\n";
+		}
+		else {
+			cout << "\n\nError: "<< mysql_error(obj_conexion.getConector());
+		}
+
 		obj_conexion.conexion_closed_sql();
 	}
 
@@ -145,6 +141,9 @@ public:
 							i++;
 						}
 					}
+					else {
+						cout << "\n\nError: Por favor, ingrese un ID correcto.\n\n";
+					}
 
 					if (int_opcion <= 3 && int_variable == 2) {
 						int_opcion++;
@@ -153,14 +152,88 @@ public:
 						int_opcion = 4;
 					}
 				} while (int_opcion < 4);
+
 				obj_conexion.conexion_closed_sql();
 			}
 			else {
-				cout << "Por favor ingrese una combinación valida en la variable.";
+				cout << "Error: Por favor ingrese una combinación valida en la variable.";
 			}
 		}
 		else {
-			cout << "Por favor ingrese una combinación valida en la opcion.";
+			cout << "Error: Por favor ingrese una combinación valida en la opcion.";
 		}
+	}
+
+	void Ventas_AIO_eliminar(string str_id, int int_tabla) {
+		/*
+		(str_id) = ID a eliminar.
+		(int_tabla = 1) = Tabla Ventas.
+		(int_tabla = 2) = Tabla Ventas_detalle.
+		*/
+		string delete_dat = "delete from ";
+		obj_conexion.conexion_open_sql();
+		
+		if (int_tabla == 1) {
+			delete_dat = delete_dat + "ventas where idVenta=" + str_id;
+		}
+		else if (int_tabla == 2) {
+			delete_dat = delete_dat + "ventas_detalle where idVenta_detalle=" + str_id;
+		}
+		else {
+			cout << "\n\nError: Ingrese un valor de tabla correcto.\n\n";
+		}
+		
+		const char* execute_delete = delete_dat.c_str();
+		int q_estado = mysql_query(obj_conexion.getConector(), execute_delete);
+		
+		if (!q_estado) {
+			cout << "\n\nEliminado\n\n";
+		}
+		else {
+			cout << "\n\nError: ";
+			const char* chr_errorbase = "Cannot delete or update a parent row: a foreign key constraint fails";
+			const char* chr_error = mysql_error(obj_conexion.getConector());
+			int int_error = strcmp(chr_errorbase, chr_error);
+
+			if (int_error == 0) {
+				cout << "Por favor elimine todos los registros asociados a la venta. ";
+			}
+			else {
+				cout << "Por favor verique que el ID exista o comuniquese con su administrador";
+			};
+		}
+		obj_conexion.conexion_closed_sql();
+	}
+
+	void Ventas_AIO_update(string str_id, string str_columna, string str_nuevo_valor, int int_tabla) {
+		/*
+		(str_id) = ID a actualizar. 
+		(str_columna) = Columna a modificar sus registros.
+		(str_nuevo_valor) = Nuevo valor.
+		(int_tabla = 1) = Tabla Ventas.
+		(int_tabla = 2) = Tabla Ventas_detalle.
+		*/
+		string update_dat;
+		obj_conexion.conexion_open_sql();
+		
+		if (int_tabla == 1) {
+			update_dat = "update ventas set " + str_columna + "='" + str_nuevo_valor + "' where idVenta=" + str_id;
+		}
+		else if (int_tabla == 2) {
+			update_dat = "update ventas_detalle set " + str_columna + "='" + str_nuevo_valor + "' where idVenta_detalle=" + str_id;
+		}
+		else {
+			cout << "Error: Ingrese un valor de tabla correcto";
+		}
+		
+		const char* execute_update = update_dat.c_str();
+		int q_estado = mysql_query(obj_conexion.getConector(), execute_update);
+		if (!q_estado) {
+			cout << "\n\nActualizado\n\n";
+		}
+		else {
+			cout << "\n\nError: " << mysql_error(obj_conexion.getConector());
+		}
+		obj_conexion.conexion_closed_sql();
 	}
 };

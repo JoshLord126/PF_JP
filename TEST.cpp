@@ -19,13 +19,14 @@ int main()
         obj_ventas_aio = Ventas_AIO(int_idVenta, NULL, NULL, NULL, NULL, "****-**-**", "****-**-**", NULL, 4, "325", 100.99);
         obj_ventas_aio.Ventas_AIO_ingreso(2);
 
-    */
-    //MOSTRAR: 
+    MOSTRAR: 
         obj_ventas_aio.Ventas_AIO_mostrar(1, 2, "11");
 
+    ACTUALIZAR:
+        obj_ventas_aio.Ventas_AIO_eliminar("13", 1);
 
-    
+    ELIMINAR:
+        obj_ventas_aio.Ventas_AIO_update("23", "cantidd", "35", 2);
+    */
 
-    
-    
 }
